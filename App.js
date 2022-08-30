@@ -15,7 +15,7 @@ import {
 
 function App(){
 
-  const [items, setItems] = useState([{title:"Study React-native", done: false},{title:"Read book", done: false},{title:"Learn something new", done: false}]);
+  const [items, setItems] = useState([]);
   const [count, setCount] = useState(3);
   const [text, setText] = useState("");
   
