@@ -1,4 +1,4 @@
-import React ,{useState} from 'react';
+import React ,{useState, useCallback, useEffect} from 'react';
 
 import {
   ScrollView,
@@ -13,23 +13,70 @@ import {
 } from 'react-native';
 
 
+import * as SplashScreen from 'expo-splash-screen';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
+SplashScreen.preventAutoHideAsync();
+
 function App(){
 
   const [items, setItems] = useState([]);
-  const [count, setCount] = useState(3);
+  const [count, setCount] = useState(0);
   const [text, setText] = useState("");
+
+  const [appIsReady, setAppIsReady] = useState(false);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+
+        await AsyncStorage.getItem("@COUNT").then(data => {
+          if(data !== null)
+            setCount(JSON.parse(data));
+        });
+
+        await AsyncStorage.getItem("@TODOS").then(data => {
+          if(data !== null)
+            setItems(JSON.parse(data));
+        });
+
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+      }
+    }
+
+    prepare();
+  }, []);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady) {
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
   
 
 
   function handleDone(index){
     let newData = [...items];
-    if(newData[index].done)
-      setCount(count+1);
-    else
-      setCount(count-1);
+    if(newData[index].done){
+      AsyncStorage.setItem("@COUNT", JSON.stringify(count+1)).then(()=>{
+        setCount(count+1);
+      }).catch(error=> console.warn(error));
+    }
+    else{
+      AsyncStorage.setItem("@COUNT", JSON.stringify(count-1)).then(()=>{
+        setCount(count-1);
+      }).catch(error=> console.warn(error));
+    }
     
     newData[index].done = !newData[index].done;
-    setItems(newData);
+    AsyncStorage.setItem("@TODOS", JSON.stringify(newData)).then(()=>{
+      setItems(newData);
+    }).catch(error=> console.warn(error));
   }
 
   function handleDelete(index){
@@ -39,60 +86,72 @@ function App(){
         newData.push(items[i]);
       }
     }
-    if(!items[index].done)
-      setCount(count-1);
+    if(!items[index].done){
+      AsyncStorage.setItem("@COUNT", JSON.stringify(count-1)).then(()=>{
+        setCount(count-1);
+      }).catch(error=> console.warn(error));
+    }
 
-    setItems(newData);
+    AsyncStorage.setItem("@TODOS", JSON.stringify(newData)).then(()=>{
+      setItems(newData);
+    }).catch(error=> console.warn(error));
   }
 
   function addItem(){
     if(text !== ""){
       let newData = [...items];
       newData.push({title: text, done: false});
-      setItems(newData);
       setText("");
-      setCount(count+1);
+      
+      AsyncStorage.setItem("@COUNT", JSON.stringify(count+1)).then(()=>{
+        setCount(count+1);
+      }).catch(error=> console.warn(error));
+
+      AsyncStorage.setItem("@TODOS", JSON.stringify(newData)).then(()=>{
+        setItems(newData);
+      }).catch(error=> console.warn(error));
     }
   }
   
   return(
-    
-    <SafeAreaView
-      style={styles.safe}>
+    <>
+      <StatusBar barStyle={'light-content'}/>
+      <SafeAreaView
+        style={styles.safe}
+        onLayout={onLayoutRootView}>
 
-        <StatusBar barStyle={'light-content'}/>
+          <View style={styles.header}>
+            <Text style={styles.headreText}>To-Do's</Text>
+            <Text style={styles.headreText}>{count}</Text>
+          </View>
 
-        <View style={styles.header}>
-          <Text style={styles.headreText}>To-Do's</Text>
-          <Text style={styles.headreText}>{count}</Text>
-        </View>
-
-        <View style={styles.inputContainer}>
-            <TextInput style={styles.textInput} 
-              placeholder="Do ..."
-              onChangeText={input => setText(input)} 
-              defaultValue={text}/>
-            <Pressable style={styles.addButton} onPress={addItem}>
-                <Text style={styles.buttonText}>Add</Text>
-            </Pressable>
-        </View>
-
-        <ScrollView style={styles.scroll}>
-          {items.length === 0 ? 
-            <View style={styles.emptyInfoView}>
-            <Text style={styles.emptyInfoText}>Nothing To Do ...</Text>
-            </View>
-          :
-          items.map((item, index) => {return(
-            <Pressable onPress={() => handleDone(index)} onLongPress={() => handleDelete(index)} key={index}>
-                <View style={styles.itemLine(item.done)}>
-                  <Text style={styles.lineText(item.done)}>{item.title}</Text>
-                </View>
+          <View style={styles.inputContainer}>
+              <TextInput style={styles.textInput} 
+                placeholder="Do ..."
+                onChangeText={input => setText(input)} 
+                defaultValue={text}/>
+              <Pressable style={styles.addButton} onPress={addItem}>
+                  <Text style={styles.buttonText}>Add</Text>
               </Pressable>
-          )})}    
-        </ScrollView>
+          </View>
 
-    </SafeAreaView>
+          <ScrollView style={styles.scroll}>
+            {items.length === 0 ? 
+              <View style={styles.emptyInfoView}>
+              <Text style={styles.emptyInfoText}>Nothing To Do ...</Text>
+              </View>
+            :
+            items.map((item, index) => {return(
+              <Pressable onPress={() => handleDone(index)} onLongPress={() => handleDelete(index)} key={index}>
+                  <View style={styles.itemLine(item.done)}>
+                    <Text style={styles.lineText(item.done)}>{item.title}</Text>
+                  </View>
+                </Pressable>
+            )})}    
+          </ScrollView>
+
+      </SafeAreaView>
+    </>
   );
 }
 
