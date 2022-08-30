@@ -78,13 +78,18 @@ function App(){
         </View>
 
         <ScrollView style={styles.scroll}>
-          {items.map((item, index) => {return(
+          {items.length === 0 ? 
+            <View style={styles.emptyInfoView}>
+            <Text style={styles.emptyInfoText}>Nothing To Do ...</Text>
+            </View>
+          :
+          items.map((item, index) => {return(
             <Pressable onPress={() => handleDone(index)} onLongPress={() => handleDelete(index)} key={index}>
-              <View style={styles.itemLine(item.done)}>
-                <Text style={styles.lineText(item.done)}>{item.title}</Text>
-              </View>
-            </Pressable>
-          )})}
+                <View style={styles.itemLine(item.done)}>
+                  <Text style={styles.lineText(item.done)}>{item.title}</Text>
+                </View>
+              </Pressable>
+          )})}    
         </ScrollView>
 
     </SafeAreaView>
@@ -153,6 +158,18 @@ const styles = StyleSheet.create({
 
   scroll: {
     flex:1
+  },
+
+  emptyInfoView: {
+    paddingTop: 32,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  emptyInfoText: {
+    color: white,
+    fontSize: 26,
+    fontWeight: "bold",
   },
 
   itemLine : (done) => ({
