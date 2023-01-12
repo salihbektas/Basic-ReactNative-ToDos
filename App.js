@@ -22,7 +22,7 @@ SplashScreen.preventAutoHideAsync();
 
 function App(){
 
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState();
   const [count, setCount] = useState(0);
   const [text, setText] = useState("");
 
@@ -70,25 +70,17 @@ function App(){
     }
     
     newData[index].done = !newData[index].done;
-    AsyncStorage.setItem("@TODOS", JSON.stringify(newData)).then(()=>{
-      setItems(newData);
-    }).catch(error=> console.warn(error));
+    setItems(newData)
   }
 
   function handleDelete(index){
-    let newData = [];
-    for(let i = 0; i < items.length; ++i){
-      if(i !== index){
-        newData.push(items[i]);
-      }
-    }
+    let newData = items.filter((item, targetIndex) => targetIndex !== index)
+
     if(!items[index].done){
       setCount(current => current - 1)
     }
 
-    AsyncStorage.setItem("@TODOS", JSON.stringify(newData)).then(()=>{
-      setItems(newData);
-    }).catch(error=> console.warn(error));
+    setItems(newData)
   }
 
   function addItem(){
@@ -96,15 +88,18 @@ function App(){
       let newData = [{title: text, done: false}, ...items];
       setText("");
       setCount(current => current + 1)
-      AsyncStorage.setItem("@TODOS", JSON.stringify(newData)).then(()=>{
-        setItems(newData);
-      }).catch(error=> console.warn(error));
+      setItems(newData)
     }
   }
 
   useEffect(() => {
     AsyncStorage.setItem("@COUNT", JSON.stringify(count)).catch(error=> console.warn(error));
   }, [count])
+
+  useEffect(() => {
+    if(items)
+      AsyncStorage.setItem("@TODOS", JSON.stringify(items)).catch(error=> console.warn(error));
+  }, [items])
   
   return(
     <>
@@ -129,7 +124,7 @@ function App(){
           </View>
 
           <ScrollView style={styles.scroll}>
-            {items.length === 0 ? 
+            {!items || items.length === 0 ? 
               <View style={styles.emptyInfoView}>
               <Text style={styles.emptyInfoText}>Nothing To Do ...</Text>
               </View>
