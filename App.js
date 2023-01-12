@@ -93,8 +93,7 @@ function App(){
 
   function addItem(){
     if(text !== ""){
-      let newData = [...items];
-      newData.push({title: text, done: false});
+      let newData = [{title: text, done: false}, ...items];
       setText("");
       setCount(current => current + 1)
       AsyncStorage.setItem("@TODOS", JSON.stringify(newData)).then(()=>{
