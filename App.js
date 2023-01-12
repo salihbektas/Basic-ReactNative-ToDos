@@ -64,12 +64,12 @@ function App(){
     let newData = [...items];
     if(newData[index].done){
       AsyncStorage.setItem("@COUNT", JSON.stringify(count+1)).then(()=>{
-        setCount(count+1);
+        setCount(current => current + 1);
       }).catch(error=> console.warn(error));
     }
     else{
       AsyncStorage.setItem("@COUNT", JSON.stringify(count-1)).then(()=>{
-        setCount(count-1);
+        setCount(current => current - 1);
       }).catch(error=> console.warn(error));
     }
     
@@ -88,7 +88,7 @@ function App(){
     }
     if(!items[index].done){
       AsyncStorage.setItem("@COUNT", JSON.stringify(count-1)).then(()=>{
-        setCount(count-1);
+        setCount(current => current - 1);
       }).catch(error=> console.warn(error));
     }
 
@@ -104,7 +104,7 @@ function App(){
       setText("");
       
       AsyncStorage.setItem("@COUNT", JSON.stringify(count+1)).then(()=>{
-        setCount(count+1);
+        setCount(current => current + 1);
       }).catch(error=> console.warn(error));
 
       AsyncStorage.setItem("@TODOS", JSON.stringify(newData)).then(()=>{
