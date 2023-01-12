@@ -63,14 +63,10 @@ function App(){
   function handleDone(index){
     let newData = [...items];
     if(newData[index].done){
-      AsyncStorage.setItem("@COUNT", JSON.stringify(count+1)).then(()=>{
-        setCount(current => current + 1);
-      }).catch(error=> console.warn(error));
+      setCount(current => current + 1)
     }
     else{
-      AsyncStorage.setItem("@COUNT", JSON.stringify(count-1)).then(()=>{
-        setCount(current => current - 1);
-      }).catch(error=> console.warn(error));
+      setCount(current => current - 1)
     }
     
     newData[index].done = !newData[index].done;
@@ -87,9 +83,7 @@ function App(){
       }
     }
     if(!items[index].done){
-      AsyncStorage.setItem("@COUNT", JSON.stringify(count-1)).then(()=>{
-        setCount(current => current - 1);
-      }).catch(error=> console.warn(error));
+      setCount(current => current - 1)
     }
 
     AsyncStorage.setItem("@TODOS", JSON.stringify(newData)).then(()=>{
@@ -102,16 +96,16 @@ function App(){
       let newData = [...items];
       newData.push({title: text, done: false});
       setText("");
-      
-      AsyncStorage.setItem("@COUNT", JSON.stringify(count+1)).then(()=>{
-        setCount(current => current + 1);
-      }).catch(error=> console.warn(error));
-
+      setCount(current => current + 1)
       AsyncStorage.setItem("@TODOS", JSON.stringify(newData)).then(()=>{
         setItems(newData);
       }).catch(error=> console.warn(error));
     }
   }
+
+  useEffect(() => {
+    AsyncStorage.setItem("@COUNT", JSON.stringify(count)).catch(error=> console.warn(error));
+  }, [count])
   
   return(
     <>
