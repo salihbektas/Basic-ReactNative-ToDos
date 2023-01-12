@@ -61,16 +61,19 @@ function App(){
 
 
   function handleDone(index){
-    let newData = [...items];
-    if(newData[index].done){
+    items[index].done = !items[index].done
+
+    if(!items[index].done){
       setCount(current => current + 1)
     }
     else{
       setCount(current => current - 1)
     }
+
+    let unDoneJobs = items.filter(item => !item.done)
+    let doneJobs = items.filter(item => item.done)
     
-    newData[index].done = !newData[index].done;
-    setItems(newData)
+    setItems([...unDoneJobs, ...doneJobs])
   }
 
   function handleDelete(index){
