@@ -9,7 +9,9 @@ import {
   TextInput,
   Dimensions,
   SafeAreaView,
-  StatusBar
+  StatusBar,
+  TouchableWithoutFeedback,
+  Keyboard
 } from 'react-native';
 
 
@@ -105,11 +107,12 @@ function App(){
   }, [items])
   
   return(
-    <>
-      <StatusBar barStyle={'light-content'}/>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} >
       <SafeAreaView
         style={styles.safe}
         onLayout={onLayoutRootView}>
+        
+        <StatusBar barStyle={'light-content'}/>
 
           <View style={styles.header}>
             <Text style={styles.headreText}>To-Do's</Text>
@@ -142,7 +145,7 @@ function App(){
           </ScrollView>
 
       </SafeAreaView>
-    </>
+    </TouchableWithoutFeedback>
   );
 }
 
