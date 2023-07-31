@@ -1,4 +1,4 @@
-import React ,{useState, useCallback, useEffect} from 'react';
+import React, { useState, useCallback, useEffect } from "react"
 
 import {
   ScrollView,
@@ -12,173 +12,172 @@ import {
   StatusBar,
   TouchableWithoutFeedback,
   Keyboard
-} from 'react-native';
+} from "react-native"
 
+import * as SplashScreen from "expo-splash-screen"
 
-import * as SplashScreen from 'expo-splash-screen';
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+SplashScreen.preventAutoHideAsync()
 
+function App() {
+  const [items, setItems] = useState([])
+  const [count, setCount] = useState(0)
+  const [text, setText] = useState("")
 
-SplashScreen.preventAutoHideAsync();
-
-function App(){
-
-  const [items, setItems] = useState();
-  const [count, setCount] = useState(0);
-  const [text, setText] = useState("");
-
-  const [appIsReady, setAppIsReady] = useState(false);
+  const [appIsReady, setAppIsReady] = useState(false)
 
   useEffect(() => {
     async function prepare() {
       try {
+        await AsyncStorage.getItem("@COUNT").then((data) => {
+          if (data !== null) setCount(JSON.parse(data))
+        })
 
-        await AsyncStorage.getItem("@COUNT").then(data => {
-          if(data !== null)
-            setCount(JSON.parse(data));
-        });
-
-        await AsyncStorage.getItem("@TODOS").then(data => {
-          if(data !== null)
-            setItems(JSON.parse(data));
-        });
-
+        await AsyncStorage.getItem("@TODOS").then((data) => {
+          if (data !== null) setItems(JSON.parse(data))
+        })
       } catch (e) {
-        console.warn(e);
+        console.warn(e)
       } finally {
-        setAppIsReady(true);
+        setAppIsReady(true)
       }
     }
 
-    prepare();
-  }, []);
+    prepare()
+  }, [])
 
   const onLayoutRootView = useCallback(async () => {
     if (appIsReady) {
-      await SplashScreen.hideAsync();
+      await SplashScreen.hideAsync()
     }
-  }, [appIsReady]);
-  
+  }, [appIsReady])
 
-
-  function handleDone(index){
+  function handleDone(index) {
     items[index].done = !items[index].done
 
-    if(!items[index].done){
-      setCount(current => current + 1)
-    }
-    else{
-      setCount(current => current - 1)
+    if (!items[index].done) {
+      setCount((current) => current + 1)
+    } else {
+      setCount((current) => current - 1)
     }
 
-    let unDoneJobs = items.filter(item => !item.done)
-    let doneJobs = items.filter(item => item.done)
-    
+    let unDoneJobs = items.filter((item) => !item.done)
+    let doneJobs = items.filter((item) => item.done)
+
     setItems([...unDoneJobs, ...doneJobs])
   }
 
-  function handleDelete(index){
-    let newData = items.filter((item, targetIndex) => targetIndex !== index)
+  function handleDelete(deleteIndex) {
+    let newData = items.filter((item, index) => index !== deleteIndex)
 
-    if(!items[index].done){
-      setCount(current => current - 1)
+    if (!items[deleteIndex].done) {
+      setCount((current) => current - 1)
     }
 
     setItems(newData)
   }
 
-  function addItem(){
-    if(text !== ""){
-      let newData = [{title: text, done: false}, ...items];
-      setText("");
-      setCount(current => current + 1)
+  function addItem() {
+    if (text !== "") {
+      let newData = [{ title: text, done: false }, ...items]
+      setText("")
+      setCount((current) => current + 1)
       setItems(newData)
     }
   }
 
   useEffect(() => {
-    AsyncStorage.setItem("@COUNT", JSON.stringify(count)).catch(error=> console.warn(error));
+    AsyncStorage.setItem("@COUNT", JSON.stringify(count)).catch((error) =>
+      console.warn(error)
+    )
   }, [count])
 
   useEffect(() => {
-    if(items)
-      AsyncStorage.setItem("@TODOS", JSON.stringify(items)).catch(error=> console.warn(error));
+    if (items)
+      AsyncStorage.setItem("@TODOS", JSON.stringify(items)).catch((error) =>
+        console.warn(error)
+      )
   }, [items])
-  
-  return(
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} >
-      <SafeAreaView
-        style={styles.safe}
-        onLayout={onLayoutRootView}>
-        
-        <StatusBar barStyle={'light-content'}/>
 
-          <View style={styles.header}>
-            <Text style={styles.headreText}>To-Do's</Text>
-            <Text style={styles.headreText}>{count}</Text>
-          </View>
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView style={styles.safe} onLayout={onLayoutRootView}>
+        <StatusBar barStyle={"light-content"} />
 
-          <View style={styles.inputContainer}>
-              <TextInput style={styles.textInput} 
-                placeholder="Do ..."
-                onChangeText={input => setText(input)} 
-                defaultValue={text}/>
-              <Pressable style={styles.addButton} onPress={addItem}>
-                  <Text style={styles.buttonText}>Add</Text>
-              </Pressable>
-          </View>
+        <View style={styles.header}>
+          <Text style={styles.headreText}>To-Do's</Text>
+          <Text style={styles.headreText}>{count}</Text>
+        </View>
 
-          <ScrollView style={styles.scroll}>
-            {!items || items.length === 0 ? 
-              <View style={styles.emptyInfoView}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Do ..."
+            onChangeText={(input) => setText(input)}
+            defaultValue={text}
+          />
+          <Pressable style={styles.addButton} onPress={addItem}>
+            <Text style={styles.buttonText}>Add</Text>
+          </Pressable>
+        </View>
+
+        <ScrollView style={styles.scroll}>
+          {!items || items.length === 0 ? (
+            <View style={styles.emptyInfoView}>
               <Text style={styles.emptyInfoText}>Nothing To Do ...</Text>
-              </View>
-            :
-            items.map((item, index) => {return(
-              <Pressable onPress={() => handleDone(index)} onLongPress={() => handleDelete(index)} key={index}>
+            </View>
+          ) : (
+            items.map((item, index) => {
+              return (
+                <Pressable
+                  onPress={() => handleDone(index)}
+                  onLongPress={() => handleDelete(index)}
+                  key={index}
+                >
                   <View style={styles.itemLine(item.done)}>
                     <Text style={styles.lineText(item.done)}>{item.title}</Text>
                   </View>
                 </Pressable>
-            )})}    
-          </ScrollView>
-
+              )
+            })
+          )}
+        </ScrollView>
       </SafeAreaView>
     </TouchableWithoutFeedback>
-  );
+  )
 }
 
-const dark = "#16161A";
-const purple = "#7F5AF0";
-const green = "#2CB67D";
-const white = "#FFFFFE";
-const grey = "#94A1B2";
-const windowHeight = Dimensions.get('window').height;
+const dark = "#16161A"
+const purple = "#7F5AF0"
+const green = "#2CB67D"
+const white = "#FFFFFE"
+const grey = "#94A1B2"
+const windowHeight = Dimensions.get("window").height
 
 const styles = StyleSheet.create({
   safe: {
-    flex:1,
-    backgroundColor: dark,  
-    padding: 8, 
-    justifyContent:"center"
+    flex: 1,
+    backgroundColor: dark,
+    padding: 8,
+    justifyContent: "center"
   },
-  
+
   header: {
-    height: windowHeight*0.08, 
-    flexDirection:"row", 
-    justifyContent:"space-between", 
-    alignItems:"center"
+    height: windowHeight * 0.08,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
   },
 
   headreText: {
     color: purple,
     fontSize: 28,
-    fontWeight:"bold"
+    fontWeight: "bold"
   },
 
   inputContainer: {
-    height: windowHeight*0.16,
+    height: windowHeight * 0.16,
     backgroundColor: grey,
     alignItems: "center",
     paddingHorizontal: 8,
@@ -210,22 +209,22 @@ const styles = StyleSheet.create({
   },
 
   scroll: {
-    flex:1
+    flex: 1
   },
 
   emptyInfoView: {
     paddingTop: 32,
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "center"
   },
 
   emptyInfoText: {
     color: white,
     fontSize: 26,
-    fontWeight: "bold",
+    fontWeight: "bold"
   },
 
-  itemLine : (done) => ({
+  itemLine: (done) => ({
     backgroundColor: done ? white : green,
     marginHorizontal: 4,
     marginVertical: 6,
@@ -233,13 +232,11 @@ const styles = StyleSheet.create({
     borderRadius: 8
   }),
 
-  lineText : (done) => ({
+  lineText: (done) => ({
     color: done ? dark : white,
     fontWeight: "bold",
     textDecorationLine: done ? "line-through" : "none"
   })
+})
 
-
-});
-
-export default App;
+export default App
