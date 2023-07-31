@@ -22,7 +22,7 @@ SplashScreen.preventAutoHideAsync()
 
 function App() {
   const [items, setItems] = useState([])
-  const [count, setCount] = useState(0)
+  const count = items.reduce((acc, item) => (!item.done ? acc + 1 : acc), 0)
   const [text, setText] = useState("")
 
   const [appIsReady, setAppIsReady] = useState(false)
@@ -30,10 +30,6 @@ function App() {
   useEffect(() => {
     async function prepare() {
       try {
-        await AsyncStorage.getItem("@COUNT").then((data) => {
-          if (data !== null) setCount(JSON.parse(data))
-        })
-
         await AsyncStorage.getItem("@TODOS").then((data) => {
           if (data !== null) setItems(JSON.parse(data))
         })
@@ -56,12 +52,6 @@ function App() {
   function handleDone(index) {
     items[index].done = !items[index].done
 
-    if (!items[index].done) {
-      setCount((current) => current + 1)
-    } else {
-      setCount((current) => current - 1)
-    }
-
     let unDoneJobs = items.filter((item) => !item.done)
     let doneJobs = items.filter((item) => item.done)
 
@@ -71,10 +61,6 @@ function App() {
   function handleDelete(deleteIndex) {
     let newData = items.filter((item, index) => index !== deleteIndex)
 
-    if (!items[deleteIndex].done) {
-      setCount((current) => current - 1)
-    }
-
     setItems(newData)
   }
 
@@ -82,16 +68,9 @@ function App() {
     if (text !== "") {
       let newData = [{ title: text, done: false }, ...items]
       setText("")
-      setCount((current) => current + 1)
       setItems(newData)
     }
   }
-
-  useEffect(() => {
-    AsyncStorage.setItem("@COUNT", JSON.stringify(count)).catch((error) =>
-      console.warn(error)
-    )
-  }, [count])
 
   useEffect(() => {
     if (items)
