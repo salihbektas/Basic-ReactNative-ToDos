@@ -107,19 +107,17 @@ function App() {
               <Text style={styles.emptyInfoText}>Nothing To Do ...</Text>
             </View>
           ) : (
-            items.map((item, index) => {
-              return (
-                <Pressable
-                  onPress={() => handleDone(index)}
-                  onLongPress={() => handleDelete(index)}
-                  key={index}
-                >
-                  <View style={styles.itemLine(item.done)}>
-                    <Text style={styles.lineText(item.done)}>{item.title}</Text>
-                  </View>
-                </Pressable>
-              )
-            })
+            items.map((item, index) => (
+              <Pressable
+                onPress={() => handleDone(index)}
+                onLongPress={() => handleDelete(index)}
+                key={index}
+              >
+                <View style={styles.itemLine(item.done)}>
+                  <Text style={styles.lineText(item.done)}>{item.title}</Text>
+                </View>
+              </Pressable>
+            ))
           )}
         </ScrollView>
       </SafeAreaView>
